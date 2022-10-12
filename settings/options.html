@@ -2,14 +2,54 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <link rel="stylesheet" href="options.css" />
   </head>
 
   <body>
-    <form>
-      <label>Border color <input type="text" id="color" name="color" /></label>
-      <button type="submit">Save</button>
-    </form>
+    <form id="tier">
+        <p>Torunament tiers</p>
+        <label for="valve">
+          <input type="checkbox" id="valve" name="accept" value="yes">  Valve Premier 
+        </label><br>
+        <label for="tier1">
+          <input type="checkbox" id="tier1" name="accept" value="yes">  Tier 1 
+        </label><br>
+        <label for="tier2">
+          <input type="checkbox" id="tier2" name="accept" value="yes">  Tier 2 
+        </label><br>
+        <label for="tier3">
+          <input type="checkbox" id="tier3" name="accept" value="yes">  Tier 3 
+        </label><br>
+        <label for="tier4">
+          <input type="checkbox" id="tier4" name="accept" value="yes">  Tier 4 
+        </label><br>
 
+      </form>
+      <form autocomplete="off" id="teams">
+      <div class="autocomplete" style="width:300px;">
+        <p>Only show matches involving these teams</p>
+        <input id="teamsInput" type="text" name="Team" placeholder="Enter team name">
+      </div>
+      <input type="submit" text="Add">
+      </form>
+
+      <form autocomplete="off" id="players">
+      <div class="autocomplete" style="width:300px;">
+        <p>Only show matches involving these teams</p>
+        <input id="playersInput" type="text" name="Team" placeholder="Enter team name">
+      </div>
+      <input type="submit" text="Add">
+      </form>
+
+
+      <div id="type">
+        <label for="accept">Show matches that are online/offline/both <input type="text" id="color" name="color" /></label>
+      </div> 
+
+      <button type="submit">Save</button>
+      
+    
     <script src="options.js"></script>
+    
   </body>
 </html>

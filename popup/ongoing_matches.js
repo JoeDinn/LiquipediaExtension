@@ -15,20 +15,6 @@ const hidePage = `body > :not(.beastify-image) {
 function listenForClicks() {
   document.addEventListener("click", (e) => {
     /**
-     * Given the name of a beast, get the URL to the corresponding image.
-     */
-    function beastNameToURL(beastName) {
-      switch (beastName) {
-        case "Frog":
-          return browser.runtime.getURL("beasts/frog.jpg");
-        case "Snake":
-          return browser.runtime.getURL("beasts/snake.jpg");
-        case "Turtle":
-          return browser.runtime.getURL("beasts/turtle.jpg");
-      }
-    }
-
-    /**
      * Insert the page-hiding CSS into the active tab,
      * then get the beast URL and
      * send a "beastify" message to the content script in the active tab.
@@ -44,19 +30,6 @@ function listenForClicks() {
         
       
       });
-    }
-
-    /**
-     * Remove the page-hiding CSS from the active tab,
-     * send a "reset" message to the content script in the active tab.
-     */
-    function reset(tabs) {
-      browser.tabs.removeCSS({ code: hidePage }).then(() => {
-        browser.tabs.sendMessage(tabs[0].id, {
-          command: "reset",
-        });
-      });
-      updateIcon(true)
     }
 
     /**
@@ -89,9 +62,10 @@ function listenForClicks() {
  * Display the popup's error message, and hide the normal UI.
  */
 function reportExecuteScriptError(error) {
+  console.log(`Failed to execute beastify content script: ${error.message}`);
   document.querySelector("#popup-content").classList.add("hidden");
   document.querySelector("#error-content").classList.remove("hidden");
-  console.error(`Failed to execute beastify content script: ${error.message}`);
+  
 }
 function onError(matches){
     // Handle error
@@ -102,12 +76,18 @@ function onLoad(item){
     const matchesDiv = document.getElementById("matches");
     let html = '<div class="button beast">Frog</div>';
     currentTime = new Date().getTime().toString().slice(0,10); // Remove ms
-    item.matches.forEach(function(match, index) {
-        teams = match.printouts["Has teams "]
-        matchTime = match.printouts["has map_date "][0].timestamp;
-        let text = (teams.length > 1)? `${teams[0].fulltext} ${teams[1].fulltext}` : `${match.printouts["has tournament "][0].fulltext}`;
-        matchesDiv.insertAdjacentHTML("beforeend", `<div class="${(currentTime>matchTime)?"ongoing":"upcoming"}">${text}</div>`);
-    });  
+    if (item.matches.length > 0){
+        item.matches.forEach(function(match, index) {
+            teams = match.printouts["Has teams "]
+            matchTime = match.printouts["has map_date "][0].timestamp;
+            //console.log([currentTime, matchTime, (currentTime>matchTime)])
+            let text = (teams.length > 1)? `${teams[0].fulltext} vs ${teams[1].fulltext}` : `${match.printouts["has tournament "][0].fulltext}`;
+            matchesDiv.insertAdjacentHTML("beforeend", `<div class="${(currentTime>matchTime)?"ongoing":"upcoming"}">${text}</div>`);
+        });  
+    }
+    else {
+        matchesDiv.insertAdjacentHTML("beforeend", "<div}>No matches to show</div>");
+    }
 
 }
 /**

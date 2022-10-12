@@ -29,7 +29,7 @@
   },
 
   "options_ui": {
-    "page": "options.html"
+    "page": "settings/options.html"
   },
 
   "browser_specific_settings": {

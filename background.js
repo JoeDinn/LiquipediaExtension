@@ -3,7 +3,7 @@ const afterFilter = "has map_date::>";
 const beforeFilter = "has map_date::<";
 const printOut = encodeURIComponent("Has tournament type |Has teams |Has tournament tier |has map_date |has tournament |has team left |has team right |has match stream |has tournament icon |Has tournament name |Has team left score |Has team right score |Has match twitch |Has match afreeca |Has match afreecatv |Has match dailymotion |Has match douyu |Has match smashcast |Has match youtube |Has match huomao |Has match facebook |has player left |has player left page |has player left flag |has player left score |has player right |has player right page |has player right flag |has player right score |is individual tournament |Has game count |is valve premier");
 const baseParameters = `&printouts=${printOut}%20&parameters=`;
-const defaultFilters = ["-Has subobject::+", ":+", "Has exact time::true", "Is finished::false"];
+const defaultFilters = ["-Has subobject::+", ":+", "Has exact time::true"]; //, "Is finished::false"];
 const sep = "%7C" // creates "|"            
 
   
@@ -55,7 +55,12 @@ function getMatches(filters) {
         if (matches.length > 0) {
             updateIcon(true);
         }
-        console.log(matches);        browser.storage.local.set({matches});
+        else
+        {
+          updateIcon(false);
+        }
+        console.log(matches);        
+        browser.storage.local.set({matches});
     });
 
 }
@@ -71,6 +76,6 @@ browser.tabs.onCreated.addListener(() => {
 })
 browser.runtime.onStartup.addListener(() => {
   // run startup function
-  console.log("sdfg")
+  console.log("startup")
   getMatches(["Has tournament tier::1"])
 })
