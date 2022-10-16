@@ -11,14 +11,14 @@
 
   "permissions": [
     "*://liquipedia.net/dota2/*",
-    "bookmarks",
-    "tabs",
     "storage",
-    "activeTab"
+    "activeTab",
+    "notifications",
+    "alarms"
   ],
 
   "browser_action": {
-    "default_icon": "icons/star-empty-38.png",
+    "default_icon": "icons/inactive-38.png",
     "default_title": "Dota 2 match tracker!",
     "default_popup": "popup/ongoing_matches.html"
   },

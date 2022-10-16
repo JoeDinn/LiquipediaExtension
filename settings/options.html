@@ -6,8 +6,9 @@
   </head>
 
   <body>
-    <form id="tier">
-        <p>Torunament tiers</p>
+    <form autocomplete="off" >
+      <h2>Filters</h2>
+        <p>Only show tournaments with these tiers:</p>
         <label for="valve">
           <input type="checkbox" id="valve" name="accept" value="yes">  Valve Premier 
         </label><br>
@@ -24,30 +25,32 @@
           <input type="checkbox" id="tier4" name="accept" value="yes">  Tier 4 
         </label><br>
 
+        <div class="autocomplete" id="teams" style="width:300px;">
+          <p>Only show matches involving these teams</p>
+          <input id="teamsInput" type="text" name="Team" placeholder="Enter team name">
+        
+        
+        <ul id="teamsList">
+        </ul>
+        </div>
+        <br>
+
+        <div class="autocomplete" id="players" style="width:300px;">
+          <p>Only show matches involving these players (Coming soon)</p>
+          <input id="playersInput" type="text" name="Team" placeholder="Enter player name" disabled>
+          <ul id="playersList">
+          </ul>
+        </div>
+        <br>
+
+      <h2>Settings</h2>
+        <label for="notifications">
+          <input type="checkbox" id="notifications" name="accept" value="yes"> Allow Notifications 
+        </label><br>
+        <br>
+        <button type="reset">Reset</button>
+        <button type="submit">Save</button>
       </form>
-      <form autocomplete="off" id="teams">
-      <div class="autocomplete" style="width:300px;">
-        <p>Only show matches involving these teams</p>
-        <input id="teamsInput" type="text" name="Team" placeholder="Enter team name">
-      </div>
-      <input type="submit" text="Add">
-      </form>
-
-      <form autocomplete="off" id="players">
-      <div class="autocomplete" style="width:300px;">
-        <p>Only show matches involving these teams</p>
-        <input id="playersInput" type="text" name="Team" placeholder="Enter team name">
-      </div>
-      <input type="submit" text="Add">
-      </form>
-
-
-      <div id="type">
-        <label for="accept">Show matches that are online/offline/both <input type="text" id="color" name="color" /></label>
-      </div> 
-
-      <button type="submit">Save</button>
-      
     
     <script src="options.js"></script>
     

@@ -1,27 +1,63 @@
 const limit = 20; // 2500
-const playerRequest = `https://liquipedia.net/dota2/api.php?action=askargs&format=json&conditions=%3A%2B%7CHas%20role%3A%3A!Caster%7CHas%20earnings%3A%3A%3E10%2C000%7CHas%20status%3A%3AActive&printouts=Has%20id%7CHas%20region%7CHas%20teamid%7CHas%20dota2%7CHas%20earnings&parameters=limit%3D${limit}&api_version=2`;
+const playerRequest = `https://liquipedia.net/dota2/api.php?action=askargs&format=json&conditions=%3A%2B%7CHas%20role%3A%3A!Caster%7CHas%20earnings%3A%3A%3E10%2C000%7CHas%20status%3A%3AActive&printouts=Has%20id%7CHas%20region%7CHas%20teamid%7CHas%20dota2%7CHas%20team&parameters=limit%3D${limit}&api_version=2`;
 const teamRequest = `https://liquipedia.net/dota2/api.php?action=askargs&format=json&conditions=%3A%2B%7CIs%20active%3A%3Atrue%7CHas%20teamid%3A%3A%3E0&printouts=Has%20id%7CHas%20region%7CHas%20teamid%7CHas%20dota2&parameters=limit%3D${limit}&api_version=2`;
 function saveOptions(e) {
   e.preventDefault();
   browser.storage.sync.set({
-    color: document.querySelector("#color").value
+    tiers:{
+      "valve": document.querySelector("#valve").checked,
+      "tier1": document.querySelector("#tier1").checked,
+      "tier2": document.querySelector("#tier2").checked,
+      "tier3": document.querySelector("#tier3").checked,
+      "tier4": document.querySelector("#tier4").checked
+    },
+    players:[], //TODO
+    teams:[], 
+    notifications:document.querySelector("#notifications")
+    });
+  browser.runtime.sendMessage("RESET");
+}
+
+function getJSON(arr, func) {
+  console.log(arr);
+  Promise.all(arr.map(async (request) => {return fetch(request)})).then((values) => {
+      console.log(values);
+      Promise.all(values.map(async (value) => {return await value.json()})).then(func);
   });
 }
 
 //Auto complete function from here: https://www.w3schools.com/howto/howto_js_autocomplete.asp
 
-function autocomplete(inp, arr) {
-  console.log(["sdgfhh", arr])
+function autocomplete(div, arr, added) {
+
+
   /*the autocomplete function takes two arguments,
   the text field element and an array of possible autocompleted values:*/
   var currentFocus;
+  let inp = div.querySelector("input");
+  let list = div.querySelector("ul");
+
+  function updateList() {
+    list.innerHTML = "";
+    added.forEach(function(item, index) {
+      newItem = document.createElement("li");
+      newItem.innerHTML = item;
+      newItem.addEventListener("click", function(e) {
+        let index = added.indexOf(this.innerHTML);
+        if (index !== -1) {
+          added.splice(index, 1);
+        }
+        updateList();
+      });
+      list.appendChild(newItem)
+    });
+  }
+  updateList();
   /*execute a function when someone writes in the text field:*/
   inp.addEventListener("input", function(e) {
       var a, b, i, val = this.value;
       /*close any already open lists of autocompleted values*/
       closeAllLists();
-      console.log(val);
-      console.log(arr);
 
       if (!val) { return false;}
       
@@ -35,10 +71,20 @@ function autocomplete(inp, arr) {
       /*for each item in the array...*/
       console.log(arr.length)
       for (i = 0; i < arr.length; i++) {
-        console.log([arr[i].substr(0, val.length).toUpperCase(), val.toUpperCase()])
         /*check if the item starts with the same letters as the text field value:*/
-        if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
-
+        /* TODO check any substring
+        let match = false;
+        for(j = 0; j < arr[i].length - val.length; j++) {
+          console.log([arr[i].substr(j, val.length).toUpperCase(), val.toUpperCase()])
+           {
+            
+            match = true;
+            break;
+          }
+        }
+        asdytg;
+        */
+        if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()){
           /*create a DIV element for each matching element:*/
           b = document.createElement("DIV");
           /*make the matching letters bold:*/
@@ -47,15 +93,17 @@ function autocomplete(inp, arr) {
           /*insert a input field that will hold the current array item's value:*/
           b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
           /*execute a function when someone clicks on the item value (DIV element):*/
-              b.addEventListener("click", function(e) {
-              /*insert the value for the autocomplete text field:*/
-              inp.value = this.getElementsByTagName("input")[0].value;
-              /*close the list of autocompleted values,
-              (or any other open lists of autocompleted values:*/
-              closeAllLists();
+          b.addEventListener("click", function(e) {
+          /*insert the value for the autocomplete text field:*/
+            added.push(this.getElementsByTagName("input")[0].value);
+            updateList();
+            inp.value = "";
+            /*close the list of autocompleted values,
+            (or any other open lists of autocompleted values:*/
+
+            closeAllLists();
           });
           a.appendChild(b);
-
         }
       }
   });
@@ -119,32 +167,53 @@ document.addEventListener("click", function (e) {
 }
 
 async function restoreOptions() {
+  
+  function setCurrentChoice(result) {
+    // Tiers
+    document.querySelector("#valve").checked = result.tiers.valve;
+    document.querySelector("#tier1").checked = result.tiers.tier1;
+    document.querySelector("#tier2").checked = result.tiers.tier2;
+    document.querySelector("#tier3").checked = result.tiers.tier3;
+    document.querySelector("#tier4").checked = result.tiers.tier4;
 
-  Promise.all([fetch(playerRequest), fetch(teamRequest)]).then((values) => {
-    console.log(values);
-    Promise.all([values[0].json(), values[1].json()]).then((JSONValues) => {
+    // Teams
+    let teamsList = document.getElementById("teamsList")
+
+
+    // Players
+    let playersList = document.getElementById("playersList")
+    
+
+    //notifications
+    document.querySelector("#notifications").checked = result.notifications;
+
+
+    // Fetch players and teams for autocomplete
+    getJSON([playerRequest, teamRequest], (JSONValues) => {
+      console.log(JSONValues);
       let players = JSONValues[0].query.results;
       let teams = JSONValues[1].query.results;
       console.log(players);
       console.log(Object.keys(teams));
-      autocomplete(document.getElementById("teamsInput"), Object.keys(teams));
-      autocomplete(document.getElementById("playersInput"), Object.keys(players));
+      autocomplete(document.getElementById("teams"), Object.keys(teams), result.teams);
+      autocomplete(document.getElementById("players"), Object.keys(players), result.players);
     });
     
-  });
-
-  function setCurrentChoice(result) {
-    document.querySelector("#color").value = result.color || "blue";
   }
 
   function onError(error) {
     console.log(`Error: ${error}`);
   }
-
-  let getting = browser.storage.sync.get("color");
+  
+  // Load saved options
+  let getting = browser.storage.sync.get(["tiers", "players", "teams", "notifications"]);
   getting.then(setCurrentChoice, onError);
 }
+
+
 
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.querySelector("form").addEventListener("submit", saveOptions);
 
+
+//Promise.all([values[0].json(), values[1].json()]).then((JSONValues)
