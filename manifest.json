@@ -14,7 +14,9 @@
     "storage",
     "activeTab",
     "notifications",
-    "alarms"
+    "alarms",
+    "webRequest",
+    "webRequestBlocking"
   ],
 
   "browser_action": {

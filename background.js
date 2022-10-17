@@ -9,7 +9,22 @@ const baseParameters = `&printouts=${printOut}%20&parameters=`;
 const defaultFilters = "-Has subobject::+|:+|Has exact time::true|Is finished::false";
 const sep = "%7C" // creates "|"            
 const periodMinutes = 2;
-  
+
+async function redirect(requestDetails) {
+  let value = await fetch(requestDetails.url.split("?")[0]);
+  let text = await value.text();
+  let parser = new DOMParser();
+
+  // Parse the text
+  let doc = parser.parseFromString(text, "text/html");
+  let twitchURL = doc.querySelector('#stream iframe').src.split("&")[0].split("?");
+  console.log(twitchURL);
+
+  return {
+    redirectUrl: "https://www.twitch.tv/" + twitchURL[1].split("=")[1] //TODO replace with regex
+  };
+}
+
 // Japan uses yyyy/mm/dd hh:mm:ss then encode for url
 function notify(count){
   browser.notifications.create({
@@ -128,6 +143,21 @@ function getMatches(filters) {
     });
 
 }
+async function test() {
+  let value = await fetch("https://liquipedia.net/dota2/Special:Stream/twitch/pgl_dota2_en3");
+  let text = await value.text();
+  let parser = new DOMParser();
+
+  // Parse the text
+  let doc = parser.parseFromString(text, "text/html");
+  let docArticle = doc.querySelector('#stream iframe').src;
+  // You can now even select part of that html as you would in the regular DOM 
+  // Example:
+  // 
+  console.log(docArticle);
+  }
+  //<div id="stream"><iframe src="https://player.twitch.tv/?channel=pgl_dota2en3&amp;parent=liquipedia.net" allowfullscreen="true" allow="autoplay; fullscreen" scrolling="no" width="100%" height="100%" frameborder="0"></iframe></div><iframe src="https://player.twitch.tv/?channel=pgl_dota2en3&amp;parent=liquipedia.net" allowfullscreen="true" allow="autoplay; fullscreen" scrolling="no" width="100%" height="100%" frameborder="0"></iframe>
+
 
 
 function handleAlarm(alarmInfo) {
@@ -160,7 +190,7 @@ function start(){
 
 function init() {
   // Runs on installation
-
+  test();
   //Set default options               
   browser.storage.sync.set({
     tiers:{
@@ -183,3 +213,8 @@ browser.alarms.onAlarm.addListener(handleAlarm);
 browser.runtime.onInstalled.addListener(init);
 browser.runtime.onStartup.addListener(start);
 browser.runtime.onMessage.addListener(start);
+browser.webRequest.onBeforeRequest.addListener(
+  redirect,
+  {urls:["https://liquipedia.net/dota2/Special:Stream/twitch/*?redirect=true"]},
+  ["blocking"]
+);
