@@ -5,8 +5,8 @@
     "description": "Tells you what Dota2 matches are currently playing",
     "homepage_url": "https://github.com/JoeDinn/LiquipediaExtension",
     "icons": {
-        "48": "icons/bookmark-it.png",
-        "96": "icons/bookmark-it@2x.png"
+        "48": "icons/active-48.png",
+        "96": "icons/active-96.png"
     },
 
     "permissions": [
