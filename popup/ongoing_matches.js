@@ -4,16 +4,14 @@ const twitchIcon =  '<img src="/icons/twitch-16.png" alt="Twitch icon" width="16
 const youtubeBase = "https://www.youtube.com/watch?v=";
 const youtubeIcon =  '<img src="/icons/youtube-16.png" alt="Youtube icon" width="16" height="16">';
 
-function onError(error){
-    console.log(error);
-    // Handle error
-}
-
+/*
+Create the hyperlinks for the twitch and youtube streams
+*/
 function getLinks(match) {
-    let twitchArr = match.printouts["Has match twitch "];
-    let twitchLink =  (twitchArr.length == 1)?`<a href="${twitchBase}${twitchArr[0].toLowerCase()}${twitchQuery}">${twitchIcon}</a>`:"";
-    let youtubeArr = match.printouts["Has match youtube "];
-    let youtubeLink =  (youtubeArr.length == 1)?`<a href="${youtubeBase}${youtubeArr[0].split("/")[1]}">${youtubeIcon}</a>`:"";
+    let twitchID = match.printouts["Has match twitch "][0].toLowerCase();
+    let twitchLink = (twitchArr.length == 1)?`<a href="${twitchBase}${twitchID}${twitchQuery}">${twitchIcon}</a>`:"";
+    let youtubeID = match.printouts["Has match youtube "][0].split("/")[1];
+    let youtubeLink =  (youtubeArr.length == 1)?`<a href="${youtubeBase}${youtubeID}">${youtubeIcon}</a>`:"";
 
     return `${twitchLink} ${youtubeLink}`
 }
@@ -61,9 +59,7 @@ function onLoad(item){
     }
 
 }
-/**
- * Run when the popup loads, inject a content script into the active tab,
- * and add a click handler.
- * If we couldn't inject the script, handle the error.
+/*
+ * Run when the popup loads, Shows all the current games
  */
-browser.storage.local.get("matches").then(onLoad, onError);
+browser.storage.local.get("matches").then(onLoad, (error)=>{console.log(error)});

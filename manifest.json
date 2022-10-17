@@ -1,43 +1,43 @@
 {
-  "manifest_version": 2,
-  "name": "Unofficial liquipedia Dota2 match listing",
-  "version": "1.1",
-  "description": "Tells you what Dota2 matches are currently playing",
-  "homepage_url": "https://github.com/JoeDinn/LiquipediaExtension",
-  "icons": {
-    "48": "icons/bookmark-it.png",
-    "96": "icons/bookmark-it@2x.png"
-  },
+    "manifest_version": 2,
+    "name": "Unofficial liquipedia Dota2 match listing",
+    "version": "1.1",
+    "description": "Tells you what Dota2 matches are currently playing",
+    "homepage_url": "https://github.com/JoeDinn/LiquipediaExtension",
+    "icons": {
+        "48": "icons/bookmark-it.png",
+        "96": "icons/bookmark-it@2x.png"
+    },
 
-  "permissions": [
-    "*://liquipedia.net/dota2/*",
-    "storage",
-    "activeTab",
-    "notifications",
-    "alarms",
-    "webRequest",
-    "webRequestBlocking"
-  ],
+    "permissions": [
+        "*://liquipedia.net/dota2/*",
+        "storage",
+        "activeTab",
+        "notifications",
+        "alarms",
+        "webRequest",
+        "webRequestBlocking"
+    ],
 
-  "browser_action": {
-    "default_icon": "icons/inactive-38.png",
-    "default_title": "Dota 2 match tracker!",
-    "default_popup": "popup/ongoing_matches.html"
-  },
+    "browser_action": {
+        "default_icon": "icons/inactive-38.png",
+        "default_title": "Dota 2 match tracker!",
+        "default_popup": "popup/ongoing_matches.html"
+    },
 
-  "background": {
-  "scripts": ["background.js"],
-  "persistent": false
-  },
+    "background": {
+        "scripts": ["background.js"],
+        "persistent": false
+    },
 
-  "options_ui": {
-    "page": "settings/options.html"
-  },
+    "options_ui": {
+        "page": "settings/options.html"
+    },
 
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "addon@dota2match.com"
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "addon@dota2match.com"
+        }
     }
-  }
 }
 

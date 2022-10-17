@@ -11,84 +11,83 @@ const sep = "%7C" // creates "|"
 const periodMinutes = 2;
 
 async function redirect(requestDetails) {
-  let value = await fetch(requestDetails.url.split("?")[0]);
-  let text = await value.text();
-  let parser = new DOMParser();
+    let value = await fetch(requestDetails.url.split("?")[0]);
+    let text = await value.text();
+    let parser = new DOMParser();
 
-  // Parse the text
-  let doc = parser.parseFromString(text, "text/html");
-  let twitchURL = doc.querySelector('#stream iframe').src.split("&")[0].split("?");
-  console.log(twitchURL);
+    // Parse the text
+    let doc = parser.parseFromString(text, "text/html");
+    let twitchURL = doc.querySelector('#stream iframe').src.split("&")[0].split("?");
+    console.log(twitchURL);
 
-  return {
-    redirectUrl: "https://www.twitch.tv/" + twitchURL[1].split("=")[1] //TODO replace with regex
-  };
+    return {
+        redirectUrl: "https://www.twitch.tv/" + twitchURL[1].split("=")[1] //TODO replace with regex
+    };
 }
 
 // Japan uses yyyy/mm/dd hh:mm:ss then encode for url
 function notify(count){
-  browser.notifications.create({
-    type: "basic",
-    iconUrl: browser.extension.getURL("icons/active-48.png"),
-    title: "Live matches!",
-    message: `There ${count > 1?"are":"is"} ${count} live match${count > 1?"es":""}. Click the taskbar to check ${count > 1?"them":"it"} out.\n\nYou can turn off notifications in the settings.`,
-  });
+    browser.notifications.create({
+        type: "basic",
+        iconUrl: browser.extension.getURL("icons/active-48.png"),
+        title: "Live matches!",
+        message: `There ${count > 1?"are":"is"} ${count} live match${count > 1?"es":""}. Click the taskbar to check ${count > 1?"them":"it"} out.\n\nYou can turn off notifications in the settings.`,
+    });
 }
 
 function dateString(date) {
-  return date.toLocaleString("ja-JP");
+    return date.toLocaleString("ja-JP");
 }
 
 function updateIcon(fill) {
-  browser.browserAction.setIcon({
-    path: fill ? {
-      19: "/icons/active-19.png",
-      38: "/icons/active-38.png"
-    } : {
-      19: "/icons/inactive-19.png",
-      38: "/icons/inactive-38.png"
-    }
-  });
+    browser.browserAction.setIcon({
+        path: fill ? {
+            19: "/icons/active-19.png",
+            38: "/icons/active-38.png"
+        } : {
+            19: "/icons/inactive-19.png",
+            38: "/icons/inactive-38.png"
+        }
+    });
   
 }
 
 function httpGetAsync(theUrl, callback) {
-  let xmlHttpReq = new XMLHttpRequest();
-  xmlHttpReq.onreadystatechange = function () {
+    let xmlHttpReq = new XMLHttpRequest();
+    xmlHttpReq.onreadystatechange = function () {
     if (xmlHttpReq.readyState == 4 && xmlHttpReq.status == 200)
-      callback(xmlHttpReq.responseText);
-  }
-  xmlHttpReq.open("GET", theUrl, true); // true for asynchronous 
-  xmlHttpReq.setRequestHeader("User-Agent", "Firefox Extension")
-  xmlHttpReq.send(null);
+        callback(xmlHttpReq.responseText);
+    }
+    xmlHttpReq.open("GET", theUrl, true); // true for asynchronous 
+    xmlHttpReq.setRequestHeader("User-Agent", "Firefox Extension")
+    xmlHttpReq.send(null);
 }
 
 function countOngoingMatches(matches) {
-  currentTime = new Date().getTime().toString().slice(0,10); // Remove ms 
+    currentTime = new Date().getTime().toString().slice(0,10); // Remove ms 
 
-  return matches.reduce((accumulator, match) => {
-    let matchTime = match.printouts["has map_date "][0].timestamp;
-    return accumulator + (currentTime>matchTime);
-  }, 0);
+    return matches.reduce((accumulator, match) => {
+        let matchTime = match.printouts["has map_date "][0].timestamp;
+        return accumulator + (currentTime>matchTime);
+    }, 0);
 
 }
 
 function checkTeams(teams, filterTeams) {
-  teams.forEach((team, index) => {
-    filterTeams.forEach((filterTeam, fIndex) => {
-      if (filterTeam === team[0].fulltext) {
-        return true
-      }
+    teams.forEach((team, index) => {
+        filterTeams.forEach((filterTeam, fIndex) => {
+            if (filterTeam === team[0].fulltext) {
+                return true
+            }
+        });
     });
-  });
-
-  return false
+    return false
 }
 
 async function getJSON(request, func) {
-  let value = await fetch(request);
-  console.log("?");
-  value.json().then(func);
+    let value = await fetch(request);
+    console.log("?");
+    value.json().then(func);
 }
 
 function getMatches(filters) {
@@ -102,14 +101,14 @@ function getMatches(filters) {
 
     getJSON(request, (resultsJSON) => {
         let matches = Object.values(resultsJSON.query.results).sort(function(a, b){
-          return a.printouts["has map_date "][0].timestamp - b.printouts["has map_date "][0].timestamp
+            return a.printouts["has map_date "][0].timestamp - b.printouts["has map_date "][0].timestamp
         }).filter((match)=>{
-          let teams = match.printouts["Has teams "];
-          let tier = match.printouts["Has tournament tier "][0].fulltext;
-          let valve = match.printouts["is valve premier "][0] === "t";
+            let teams = match.printouts["Has teams "];
+            let tier = match.printouts["Has tournament tier "][0].fulltext;
+            let valve = match.printouts["is valve premier "][0] === "t";
 
-          let teamValid = (filters.teams.length == 0 || checkTeams(teams, filters.teams));
-          let tierValid = ((valve && filters.tiers.valve) || filters.tiers[`tier${tier}`])
+            let teamValid = (filters.teams.length == 0 || checkTeams(teams, filters.teams));
+            let tierValid = ((valve && filters.tiers.valve) || filters.tiers[`tier${tier}`])
 
           return (teamValid && tierValid);
         });
@@ -124,89 +123,87 @@ function getMatches(filters) {
         });*/
         console.log(matches); 
         browser.storage.local.get("ongoingMatches").then((item) => { //Add settings to disable
-          let count = countOngoingMatches(matches);
-          let ongoingMatches = (count > 0);
-          let prevOngoingMatches = item.ongoingMatches;
+            let count = countOngoingMatches(matches);
+            let ongoingMatches = (count > 0);
+            let prevOngoingMatches = item.ongoingMatches;
           // Update icon
-          updateIcon(ongoingMatches);
-          if (!prevOngoingMatches && ongoingMatches)
-          {
-            browser.storage.local.get("matches").then((result) => {
-              if (result.notifications) {
-                notify(count);
-              }
-            }, (error) => {console.log(error)});
+            updateIcon(ongoingMatches);
+            if (!prevOngoingMatches && ongoingMatches) {
+                browser.storage.local.get("matches").then((result) => {
+                    if (result.notifications) {
+                        notify(count);
+                    }
+                }, (error) => {console.log(error)});
             
-          }
-          browser.storage.local.set({ongoingMatches});
+            }
+            browser.storage.local.set({ongoingMatches});
         }, (error) => {console.log(error)});        
     });
 
 }
 async function test() {
-  let value = await fetch("https://liquipedia.net/dota2/Special:Stream/twitch/pgl_dota2_en3");
-  let text = await value.text();
-  let parser = new DOMParser();
+    let value = await fetch("https://liquipedia.net/dota2/Special:Stream/twitch/pgl_dota2_en3");
+    let text = await value.text();
+    let parser = new DOMParser();
 
   // Parse the text
-  let doc = parser.parseFromString(text, "text/html");
-  let docArticle = doc.querySelector('#stream iframe').src;
+    let doc = parser.parseFromString(text, "text/html");
+    let docArticle = doc.querySelector('#stream iframe').src;
   // You can now even select part of that html as you would in the regular DOM 
   // Example:
   // 
-  console.log(docArticle);
-  }
+    console.log(docArticle);
+}
   //<div id="stream"><iframe src="https://player.twitch.tv/?channel=pgl_dota2en3&amp;parent=liquipedia.net" allowfullscreen="true" allow="autoplay; fullscreen" scrolling="no" width="100%" height="100%" frameborder="0"></iframe></div><iframe src="https://player.twitch.tv/?channel=pgl_dota2en3&amp;parent=liquipedia.net" allowfullscreen="true" allow="autoplay; fullscreen" scrolling="no" width="100%" height="100%" frameborder="0"></iframe>
 
 
 
 function handleAlarm(alarmInfo) {
-  console.log(alarmInfo.name);
+    console.log(alarmInfo.name);
   
 
 
-  if (alarmInfo.name === "periodicUpdate") {
+    if (alarmInfo.name === "periodicUpdate") {
     // Get filters from settings
     // Get matches, update icon and notify
-    browser.storage.sync.get(["tiers", "players", "teams"]).then(getMatches,(error)=>{console.log(error)});
-    ;//["Has tournament tier::1"]);
-  }
+        browser.storage.sync.get(["tiers", "players", "teams"]).then(getMatches,(error)=>{console.log(error)});
+    //["Has tournament tier::1"]);
+    }
 }
 
 
 
 function start(){
-  console.log("Ticktock");
-  let ongoingMatches = false;
-  browser.storage.local.set({ongoingMatches});
+    console.log("Ticktock");
+    let ongoingMatches = false;
+    browser.storage.local.set({ongoingMatches});
 
   // Start update clock
-  browser.alarms.create("periodicUpdate",{
-  "when": Date.now(),
-  "periodInMinutes": periodMinutes,
-  }
-  );
+    browser.alarms.create("periodicUpdate",{
+        "when": Date.now(),
+        "periodInMinutes": periodMinutes,
+    });
 }
 
 function init() {
   // Runs on installation
-  test();
-  //Set default options               
-  browser.storage.sync.set({
-    tiers:{
-      "valve": true,
-      "tier1": true,
-      "tier2": true,
-      "tier3": false,
-      "tier4": false
-    },
-    players:[],
-    teams:[], 
-    notifications:false //TODO true
+    test();
+    //Set default options               
+    browser.storage.sync.set({
+        tiers:{
+            "valve": true,
+            "tier1": true,
+            "tier2": true,
+            "tier3": false,
+            "tier4": false
+        },
+        players:[],
+        teams:[], 
+        notifications:false //TODO true
     });
 
-  //Start running
-  start();
+    //Start running
+    start();
 }
 
 browser.alarms.onAlarm.addListener(handleAlarm);
@@ -214,7 +211,7 @@ browser.runtime.onInstalled.addListener(init);
 browser.runtime.onStartup.addListener(start);
 browser.runtime.onMessage.addListener(start);
 browser.webRequest.onBeforeRequest.addListener(
-  redirect,
-  {urls:["https://liquipedia.net/dota2/Special:Stream/twitch/*?redirect=true"]},
-  ["blocking"]
+    redirect,
+    {urls:["https://liquipedia.net/dota2/Special:Stream/twitch/*?redirect=true"]},
+    ["blocking"]
 );

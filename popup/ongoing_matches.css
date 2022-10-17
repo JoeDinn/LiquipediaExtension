@@ -1,40 +1,40 @@
 html,
 body {
-  width: 300px;
+    width: 300px;
 }
 
 .hidden {
-  display: none;
+    display: none;
 }
 
 .button {
-  margin: 3% auto;
-  padding: 4px;
-  text-align: center;
-  font-size: 0.5em;
-  cursor: pointer;
+    margin: 3% auto;
+    padding: 4px;
+    text-align: center;
+    font-size: 0.5em;
+    cursor: pointer;
 }
 
 .beast:hover {
-  background-color: #CFF2F2;
+    background-color: #CFF2F2;
 }
 
 .beast {
-  background-color: #E5F2F2;
+    background-color: #E5F2F2;
 }
 
 .reset {
-  background-color: #FBFBC9;
+    background-color: #FBFBC9;
 }
 
 .reset:hover {
-  background-color: #EAEA9D;
+    background-color: #EAEA9D;
 }
 
 .ongoing {
-  background-color: #C0F0B0
+    background-color: #C0F0B0
 }
 
 .upcoming {
-  background-color: #fff2cc
+    background-color: #fff2cc
 }
