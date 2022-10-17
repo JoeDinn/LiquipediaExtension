@@ -1,3 +1,4 @@
+// Hyperlinks and icons for streams
 const twitchBase = "https://liquipedia.net/dota2/Special:Stream/twitch/";
 const twitchQuery = "?redirect=true";
 const twitchIcon =  '<img src="/icons/twitch-16.png" alt="Twitch icon" width="16" height="16">';
@@ -7,57 +8,59 @@ const youtubeIcon =  '<img src="/icons/youtube-16.png" alt="Youtube icon" width=
 /*
 Create the hyperlinks for the twitch and youtube streams
 */
-function getLinks(match) {
-    let twitchID = match.printouts["Has match twitch "][0].toLowerCase();
-    let twitchLink = (twitchArr.length == 1)?`<a href="${twitchBase}${twitchID}${twitchQuery}">${twitchIcon}</a>`:"";
-    let youtubeID = match.printouts["Has match youtube "][0].split("/")[1];
-    let youtubeLink =  (youtubeArr.length == 1)?`<a href="${youtubeBase}${youtubeID}">${youtubeIcon}</a>`:"";
+function getLinks(match)
+{   
+    // If available make twitch hyperlink with query to redirect
+    let twitchLink = (match.twitch === "")?"":
+        `<a href="${twitchBase}${match.twitch}${twitchQuery}">${twitchIcon}</a>`;
+    // If available make youtube hyperlink
+    let youtubeLink = (match.youtube === "")?"":
+        `<a href="${youtubeBase}${match.youtube}">${youtubeIcon}</a>`;
 
     return `${twitchLink} ${youtubeLink}`
 }
 
-function getTimeDiff(currentTime, matchTime) {
-    let timeDiff = Number(matchTime + "000") - currentTime.getTime(); 
-    let rem;
-    let hours = parseInt(timeDiff / (60 * 60 * 1000)); // ms + 100*s + 100*60*m + 100*60*60*h
-    rem = timeDiff % (60 * 60 * 1000);
-    let minutes = parseInt(rem / (60 * 1000));
-    /*rem = rem % (60 * 1000)
-    let seconds = parseInt(rem / 1000);*/
+/*
+Get the time until the match starts
+*/
+function getTimeDiff(currentTime, matchTime)
+{
+    // Subtract current time then convert to minutes
+    let timeDiff = (Number(matchTime) - (currentTime.getTime()/1000))/60;  // current time gives ms
+    let hours = parseInt(timeDiff / 60);
+    let minutes = parseInt(timeDiff % 60);
     return `${hours} hours and ${minutes} minutes`
 }
-function deGlossify(teamResult) {
-    let team = teamResult[0].fulltext;
-    return (team === "Glossary")?"TBD":team
-}
 
-function onLoad(item){
-    //const beastImage = document.createElement("div");
+/*
+Populate popup with ongoing and upcoming matches
+*/
+function onLoad(item)
+{
+    // Find 
     const matchesDiv = document.getElementById("matches");
-    let html = '<div class="button beast">Frog</div>';
     let currentTime = new Date(); 
-    let currentTimeString = currentTime.getTime().toString().slice(0,10); // Remove ms
-    if (item.matches.length > 0){
-        item.matches.forEach(function(match, index) {
-            let teamLeft = deGlossify(match.printouts["has team left "]);
-            let teamRight = deGlossify(match.printouts["has team right "]);
-            let leftScore = `[${match.printouts["Has team left score "][0]}]`;
-            let rightScore = `[${match.printouts["Has team right score "][0]}]`;
-            let matchTime = match.printouts["has map_date "][0].timestamp;
-            let isOngoing = (currentTimeString>matchTime);
+    let currentTimeString = currentTime.getTime().toString().slice(0,10);  // Remove ms
+    // If there are matches iterate over them
+    if (item.matches.length > 0)
+    {
+        item.matches.forEach(function(match, index)
+        {
+            let isOngoing = (currentTimeString>match.date);  // Match is currently playing
+            let cls = (isOngoing)?"ongoing":"upcoming";
+            // Get and format match data
             let link = `${isOngoing?getLinks(match):""}`;
-            let time = `${isOngoing? "Live" : getTimeDiff(currentTime, matchTime)}`;
-            
-            let teamsText = `${teamLeft} ${leftScore} vs ${rightScore} ${teamRight}` //TODO icon
-            let text =  `${teamsText}<br>${match.printouts["has tournament "][0].fulltext}`;
-            matchesDiv.insertAdjacentHTML("beforeend", `<div class="${isOngoing?"ongoing":"upcoming"}">${text}<br>${time} ${link}<br></div><hr>`);
-
-        });  //text
+            let time = `${isOngoing? "Live" : getTimeDiff(currentTime, match.date)}`;
+            let teamsText = `${match.teamLeft} [${match.scoreLeft}] vs [${match.scoreRight}] ${match.teamRight}`  // TODO icon
+            let text = `${teamsText}<br>${match.tournament}`;
+            // Add element to popup
+            matchesDiv.insertAdjacentHTML("beforeend", `<div class="${cls}">${text}<br>${time} ${link}<br></div><hr>`);
+        });
     }
+    // Otherwise insert a placeholder
     else {
         matchesDiv.insertAdjacentHTML("beforeend", "<div}>No matches to show</div>");
     }
-
 }
 /*
  * Run when the popup loads, Shows all the current games
