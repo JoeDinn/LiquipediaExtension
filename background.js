@@ -74,22 +74,6 @@ function countOngoingMatches(matches)
 }
 
 /*
-Iterate over favourite teams.
-Return true if any are playing in the match
-*/
-function checkTeams(teams, filterTeams)
-{
-    teams.forEach((team, index) => {
-        filterTeams.forEach((filterTeam, fIndex) => {
-            if (filterTeam === team[0].fulltext) {
-                return true
-            }
-        });
-    });
-    return false
-}
-
-/*
 Make HTTP request and convert result into JSON,
 then apply function
 */
@@ -149,20 +133,16 @@ function getMatches(filters)
         // Filter results and sort by date ascending
         let matches = matchesParsed.filter((match)=>
         {   
-            // If no favourite teams are selected return true.
-            // Otherwise return true if the match contains a favourite team
-            let teamValid = (filters.teams.length == 0 || checkTeams(match.teams, filters.teams));
             // Returns false if the match is not a valve tournament and only valve tournaments is selected
             let valveValid = (!(!match.valve && filters.tiers.valve));
             // and the liquipedia tier of the match is selected in settings
             let tierValid = (filters.tiers[`tier${match.tier}`])
 
-            return (teamValid && valveValid && tierValid);
+            return (valveValid && tierValid);
         }).sort(compareDate);
         // Save matches for popup
         browser.storage.local.set({matches});
 
-        console.log(matches);  // Debug
         // Get the current number of ongoing matches
         let count = countOngoingMatches(matches);
         // Update the hotbar icon to show if there are ongoing matches
@@ -229,8 +209,6 @@ function init()
             "tier3": false,
             "tier4": false
         },
-        players:[],
-        teams:[], 
         notifications:false //TODO true
     });
 
