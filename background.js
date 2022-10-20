@@ -36,7 +36,7 @@ function notify(count)
 {
     browser.notifications.create({
         type: "basic",
-        iconUrl: browser.extension.getURL("icons/active-48.png"),
+        iconUrl: runtime.getURL("icons/active-48.png"),
         title: "Live matches!",
         message: `There ${count > 1?"are":"is"} ${count} live match${count > 1?"es":""}. Click the taskbar to check ${count > 1?"them":"it"} out.\n\nYou can turn off notifications in the settings.`,
     });
