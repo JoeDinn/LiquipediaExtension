@@ -27,9 +27,11 @@ function getTimeDiff(currentTime, matchTime)
 {
     // Subtract current time then convert to minutes
     let timeDiff = (Number(matchTime) - (currentTime.getTime()/1000))/60;  // current time gives ms
-    let hours = parseInt(timeDiff / 60);
-    let minutes = parseInt(timeDiff % 60);
-    return `${hours} hours and ${minutes} minutes`
+    let days = parseInt(timeDiff / (60*24));
+    let rem = parseInt(timeDiff % (60*24));
+    let hours = parseInt(rem / 60);
+    let minutes = parseInt(rem % 60);
+    return `${days} days, ${hours} hours and ${minutes} minutes`
 }
 
 /*

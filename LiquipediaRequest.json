@@ -1,0 +1,29 @@
+{
+	"url": "https://liquipedia.net/dota2/api.php?action=askargs&format=json",
+	"conditions": 
+	[
+		"-Has subobject::+",
+		":+",
+		"Has exact time::true",
+		"Is finished::false"],
+	"printOut": 
+	[
+		"Has tournament tier",
+		"has map_date",
+		"has tournament",
+		"has team left",
+		"has team right",
+		"has tournament icon",
+		"Has tournament name",
+		"Has team left score",
+		"Has team right score",
+		"Has match twitch",
+		"Has match youtube",
+		"is valve premier"
+	],
+	"parameters":
+	[
+		"limit=500"
+	],
+	"api_version": "2"
+}

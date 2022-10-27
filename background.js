@@ -1,13 +1,3 @@
-// TODO readup on js string formatting
-const baseRequest = "https://liquipedia.net/dota2/api.php?action=askargs&format=json&conditions=";
-const after = "has map_date::>";
-const imageRequest = "https://liquipedia.net/dota2/api.php?action=askargs&format=json&conditions=%20%3A%2B%20%7CHas%20id%3A%3A";
-const imageParameters = "&printouts=Has%20image&parameters=&api_version=2";
-
-const printOut = encodeURIComponent("Has tournament type |Has teams |Has tournament tier |has map_date |has tournament |has team left |has team right |has match stream |has tournament icon |Has tournament name |Has team left score |Has team right score |Has match twitch |Has match afreeca |Has match afreecatv |Has match dailymotion |Has match douyu |Has match smashcast |Has match youtube |Has match huomao |Has match facebook |has player left |has player left page |has player left flag |has player left score |has player right |has player right page |has player right flag |has player right score |is individual tournament |Has game count |is valve premier");
-const baseParameters = `&printouts=${printOut}%20&parameters=`;
-const defaultFilters = "-Has subobject::+|:+|Has exact time::true|Is finished::false";
-const sep = "%7C"  // creates "|"            
 const periodMinutes = 2;
 
 /*
@@ -50,10 +40,10 @@ function updateIcon(active)
 {
     browser.browserAction.setIcon({
         path: active ? {
-            19: "/icons/active-19.png",
+            
             38: "/icons/active-38.png"
         } : {
-            19: "/icons/inactive-19.png",
+            
             38: "/icons/inactive-38.png"
         }
     });
@@ -74,13 +64,15 @@ function countOngoingMatches(matches)
 }
 
 /*
-Make HTTP request and convert result into JSON,
-then apply function
+Generate the liquipedia match request
 */
-async function getJSON(request, func)
+function generateRequest(requestDetails)
 {
-    let value = await fetch(request);
-    value.json().then(func);
+    return `${requestDetails.url}`+
+        `&conditions=${encodeURIComponent(requestDetails.conditions.join("|"))}`+
+        `&printouts=${encodeURIComponent(requestDetails.printOut.join("|"))}`+
+        `&parameters=${encodeURIComponent(requestDetails.parameters.join("|"))}`+
+        `&api_version=${requestDetails.api_version}`
 }
 
 /*
@@ -88,23 +80,23 @@ Parse a match into a more easily usable object
 */
 function parseMatch(match)
 {
-    let teamLeft = match.printouts["has team left "][0].fulltext;
-    let teamRight = match.printouts["has team right "][0].fulltext;
-    let youtube = match.printouts["Has match youtube "];
-    let twitch = match.printouts["Has match twitch "];
+    let teamLeft = match.printouts["has team left"][0].fulltext;
+    let teamRight = match.printouts["has team right"][0].fulltext;
+    let youtube = match.printouts["Has match youtube"];
+    let twitch = match.printouts["Has match twitch"];
     
     return {
-        "team": match.printouts["Has teams "],
-        "tier": match.printouts["Has tournament tier "][0].fulltext,
-        "valve": match.printouts["is valve premier "][0] === "t",  // Convert to bool 
+        "team": match.printouts["Has teams"],
+        "tier": match.printouts["Has tournament tier"][0].fulltext,
+        "valve": match.printouts["is valve premier"][0] === "t",  // Convert to bool 
         "teamLeft": (teamLeft === "Glossary")?"TBD":teamLeft,  // Replace default with TBD
         "teamRight": (teamRight === "Glossary")?"TBD":teamRight,  // Replace default with TBD
-        "scoreLeft": match.printouts["Has team left score "][0],
-        "scoreRight": match.printouts["Has team right score "][0],
-        "date": match.printouts["has map_date "][0].timestamp,  // Get time as UTC
+        "scoreLeft": match.printouts["Has team left score"][0],
+        "scoreRight": match.printouts["Has team right score"][0],
+        "date": match.printouts["has map_date"][0].timestamp,  // Get time as UTC
         "youtube": (youtube.length > 0)?youtube[0].split("/")[1]:"", // Remove channel name
         "twitch": (twitch.length > 0)?twitch[0].toLowerCase():"", // Convert to lower case
-        "tournament": match.printouts["has tournament "][0].fulltext
+        "tournament": match.printouts["has tournament"][0].fulltext
     }
 }
 
@@ -118,54 +110,57 @@ Get matches from liquipedia, filter them and store them for popup
 */
 function getMatches(filters)
 {
-    // Create liquipedia API request
-    let earlier = new Date();
-    earlier.setHours(earlier.getHours() - 8); //Buffer of 8 hours before now to get long games TODO is this necesssary?
-    let timeFilter = `|${after}${earlier.toLocaleString("ja-JP")}` // Japanese locale string has format YYY-MM-DD hh:mm:ss TODO does this go wrong? e.g. clocks change
-    let filtersURL = encodeURIComponent(defaultFilters + timeFilter)
-    let request = `${baseRequest}${filtersURL}${baseParameters}`;
-
-    // Send request
-    getJSON(request, (matchesJSON) =>
-    {
-        // Parse results into easier to use object sort and filter 
-        let matchesParsed = Object.values(matchesJSON.query.results).map(parseMatch);
-        // Filter results and sort by date ascending
-        let matches = matchesParsed.filter((match)=>
-        {   
-            // Returns false if the match is not a valve tournament and only valve tournaments is selected
-            let valveValid = (!(!match.valve && filters.tiers.valve));
-            // and the liquipedia tier of the match is selected in settings
-            let tierValid = (filters.tiers[`tier${match.tier}`])
-
-            return (valveValid && tierValid);
-        }).sort(compareDate);
-        // Save matches for popup
-        browser.storage.local.set({matches});
-
-        // Get the current number of ongoing matches
-        let count = countOngoingMatches(matches);
-        // Update the hotbar icon to show if there are ongoing matches
-        updateIcon((count > 0));
-        // Get the previous number of ongoing matches
-        browser.storage.local.get("ongoingMatches").then((item) => 
+    // Open and read the LiquipediaRequest file
+    fetch("LiquipediaRequest.json")  
+        .then((response) => 
+            response.json())
+        // Generate and send the Liquipedia api request to get the matches
+        .then((requestDetails) => 
+            fetch(generateRequest(requestDetails)))
+        // Convert api resoponse to json
+        .then((matchesResponse) => 
+            matchesResponse.json())
+        .then((matchesJSON) =>
         {
-            let prevOngoingMatches = item.ongoingMatches;
-            // If there are more than previous, send a notification. (Doesn't account for new match starting at same time as other finishing)
-            if (prevOngoingMatches < count)
+            console.log(matchesJSON.query.results);
+            // Parse results into easier to use object sort and filter 
+            let matchesParsed = Object.values(matchesJSON.query.results).map(parseMatch);
+            // Filter results and sort by date ascending
+            let matches = matchesParsed.filter((match) =>
+            {   
+                // false if the match is not a valve tournament and "only valve tournaments" is selected
+                let valveValid = (!(!match.valve && filters.tiers.valve));
+                // true if liquipedia tier of the match is selected in settings
+                let tierValid = (filters.tiers[`tier${match.tier}`])
+
+                return (valveValid && tierValid);
+            }).sort(compareDate);
+            // Save matches for popup
+            browser.storage.local.set({matches});
+
+            // Get the current number of ongoing matches
+            let count = countOngoingMatches(matches);
+            // Update the hotbar icon to show if there are ongoing matches
+            updateIcon((count > 0));
+            // Get the previous number of ongoing matches
+            browser.storage.local.get("ongoingMatches").then((item) => 
             {
-                browser.storage.local.get("matches").then((result) => 
+                let prevOngoingMatches = item.ongoingMatches;
+                // If there are more than previous, send a notification. (Doesn't account for new match starting at same time as other finishing)
+                if (prevOngoingMatches < count)
                 {
-                    if (result.notifications) {
-                        notify(count);
-                    }
-                }, (error) => {console.log(error)});
-            
-            }
-            // Store new ongoing game count
-            browser.storage.local.set({count});
-        }, (error) => {console.log(error)});        
-    });
+                    browser.storage.local.get("matches").then((result) => 
+                    {
+                        if (result.notifications) {
+                            notify(count);
+                        }
+                    }, (error) => {console.log(error)});
+                
+                }
+                // Store new ongoing game count
+                browser.storage.local.set({count});
+            }, (error) => {console.log(error)});        
+        });
 }
 
 /*
@@ -200,6 +195,7 @@ Run on installation of the extension
 */
 function init()
 {
+    console.log("Initialising")
     // Initialise default settings options               
     browser.storage.sync.set({
         tiers:{
