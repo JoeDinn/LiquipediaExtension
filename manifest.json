@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Unofficial liquipedia Dota2 match listing",
-    "version": "1.1",
+    "version": "2.0",
     "description": "Tells you what Dota2 matches are currently playing",
     "homepage_url": "https://github.com/JoeDinn/LiquipediaExtension",
     "icons": {
