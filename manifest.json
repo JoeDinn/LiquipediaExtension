@@ -12,7 +12,6 @@
     "permissions": [
         "*://liquipedia.net/dota2/*",
         "storage",
-        "activeTab",
         "notifications",
         "alarms",
         "webRequest",

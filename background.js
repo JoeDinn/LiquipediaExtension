@@ -1,4 +1,5 @@
 const periodMinutes = 2;
+const DEBUG = false;
 
 /*
 Redirect HTTP request for liquipedia stream with query redirect=true
@@ -41,10 +42,10 @@ function updateIcon(active)
     browser.browserAction.setIcon({
         path: active ? {
             
-            38: "/icons/active-38.png"
+            38: DEBUG ? "/icons/debug-active-38.png" : "/icons/active-38.png"
         } : {
             
-            38: "/icons/inactive-38.png"
+            38: DEBUG ? "/icons/debug-inactive-38.png" : "/icons/inactive-38.png"
         }
     });
 }
@@ -68,11 +69,27 @@ Generate the liquipedia match request
 */
 function generateRequest(requestDetails)
 {
-    return `${requestDetails.url}`+
-        `&conditions=${encodeURIComponent(requestDetails.conditions.join("|"))}`+
-        `&printouts=${encodeURIComponent(requestDetails.printOut.join("|"))}`+
-        `&parameters=${encodeURIComponent(requestDetails.parameters.join("|"))}`+
+    // Filter out matches from an earlier date TODO does this go wrong? e.g. clocks change
+    let threshold_date = new Date();
+    threshold_date.setHours(threshold_date.getHours() - 12); //Buffer of 12 hours before now to remove games that weren't marked finished
+    
+    /*
+    Join and encode the request conditions
+    */
+    function encode(to_encode)
+    {
+        // Japanese locale string has format YYY-MM-DD hh:mm:ss
+        return encodeURIComponent(to_encode.join("|").replace(/\$threshold_date/g, threshold_date.toLocaleString("ja-JP")));
+    }
+    let request = `${requestDetails.url}`+
+        `&conditions=${encode(requestDetails.conditions)}`+
+        `&printouts=${encode(requestDetails.printOut)}`+
+        `&parameters=${encode(requestDetails.parameters)}`+
         `&api_version=${requestDetails.api_version}`
+
+    if (DEBUG) console.log(request);
+
+    return request;
 }
 
 /*
@@ -122,7 +139,7 @@ function getMatches(filters)
             matchesResponse.json())
         .then((matchesJSON) =>
         {
-            console.log(matchesJSON.query.results);
+            if (DEBUG) console.log(matchesJSON.query.results);
             // Parse results into easier to use object sort and filter 
             let matchesParsed = Object.values(matchesJSON.query.results).map(parseMatch);
             // Filter results and sort by date ascending
@@ -137,7 +154,9 @@ function getMatches(filters)
             }).sort(compareDate);
             // Save matches for popup
             browser.storage.local.set({matches});
-
+            //--------------------------------------
+            if (DEBUG) console.log(matches)  // Debug
+            //--------------------------------------
             // Get the current number of ongoing matches
             let count = countOngoingMatches(matches);
             // Update the hotbar icon to show if there are ongoing matches

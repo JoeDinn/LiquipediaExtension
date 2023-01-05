@@ -5,7 +5,9 @@
 		"-Has subobject::+",
 		":+",
 		"Has exact time::true",
-		"Is finished::false"],
+		"Is finished::false",
+		"has map_date::>$threshold_date"
+	],
 	"printOut": 
 	[
 		"Has tournament tier",

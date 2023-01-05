@@ -12,6 +12,6 @@ Go to https://addons.mozilla.org/en-US/firefox/addon/dota2-match-tracker/ and cl
 ###### From source
 Clone this repository
 
-Enter about:debugging#/runtime/this-firefox in the search bar and select [Load Temporary Add-on...]
+Enter about:debugging#/runtime/this-firefox in the search bar and click [Load Temporary Add-on...]
 
 In the file picker that appears navigate to the directory containing this project and select Manifest.json .
