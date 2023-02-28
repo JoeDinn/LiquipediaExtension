@@ -101,10 +101,11 @@ function parseMatch(match)
     let teamRight = match.printouts["has team right"][0].fulltext;
     let youtube = match.printouts["Has match youtube"];
     let twitch = match.printouts["Has match twitch"];
+    let tier = (match.printouts["Has tournament tier"][0])?match.printouts["Has tournament tier"][0]:4
     
     return {
         "team": match.printouts["Has teams"],
-        "tier": match.printouts["Has tournament tier"][0].fulltext,
+        "tier": tier,
         "valve": match.printouts["is valve premier"][0] === "t",  // Convert to bool 
         "teamLeft": (teamLeft === "Glossary")?"TBD":teamLeft,  // Replace default with TBD
         "teamRight": (teamRight === "Glossary")?"TBD":teamRight,  // Replace default with TBD
@@ -142,6 +143,9 @@ function getMatches(filters)
             if (DEBUG) console.log(matchesJSON.query.results);
             // Parse results into easier to use object sort and filter 
             let matchesParsed = Object.values(matchesJSON.query.results).map(parseMatch);
+            //--------------------------------------
+            if (DEBUG) console.log(matchesParsed)  // Debug
+            //--------------------------------------
             // Filter results and sort by date ascending
             let matches = matchesParsed.filter((match) =>
             {   

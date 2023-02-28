@@ -2,7 +2,6 @@
 	"url": "https://liquipedia.net/dota2/api.php?action=askargs&format=json",
 	"conditions": 
 	[
-		"-Has subobject::+",
 		":+",
 		"Has exact time::true",
 		"Is finished::false",

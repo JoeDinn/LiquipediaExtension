@@ -1,5 +1,5 @@
 # Dota2 live match tracker firefox extension
-Firefox extension to tell me what DOTA2 games are currently happening. Information about live games is taken from Liquipedia.
+Firefox extension to tell me what DOTA2 games are currently happening. Information about live games is taken from Liquipedia.net and available under the CC-BY-SA license.
 
 When there are live DOTA2 games, the taskbar icon will light up and you will recieve a notification (optional)
 ![Icon](/icons/active-96.png)
