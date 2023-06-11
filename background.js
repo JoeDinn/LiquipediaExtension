@@ -61,7 +61,6 @@ function countOngoingMatches(matches)
         let matchTime = match.date;
         return accumulator + (currentTime>matchTime);
     }, 0);
-
 }
 
 /*
@@ -102,7 +101,7 @@ function parseMatch(match)
     let youtube = match.printouts["Has match youtube"];
     let twitch = match.printouts["Has match twitch"];
     let tier = (match.printouts["Has tournament tier"][0])?match.printouts["Has tournament tier"][0]:4
-    
+
     return {
         "team": match.printouts["Has teams"],
         "tier": tier,
@@ -113,7 +112,7 @@ function parseMatch(match)
         "scoreRight": match.printouts["Has team right score"][0],
         "date": match.printouts["has map_date"][0].timestamp,  // Get time as UTC
         "youtube": (youtube.length > 0)?youtube[0].split("/")[1]:"", // Remove channel name
-        "twitch": (twitch.length > 0)?twitch[0].toLowerCase():"", // Convert to lower case
+        "twitch": (twitch.length > 0)?twitch[0]:"", // Convert to lower case
         "tournament": match.printouts["has tournament"][0].fulltext
     }
 }
@@ -141,11 +140,9 @@ function getMatches(filters)
         .then((matchesJSON) =>
         {
             if (DEBUG) console.log(matchesJSON.query.results);
-            // Parse results into easier to use object sort and filter 
+            // Parse results into an easier to use object, sort and filter 
             let matchesParsed = Object.values(matchesJSON.query.results).map(parseMatch);
-            //--------------------------------------
-            if (DEBUG) console.log(matchesParsed)  // Debug
-            //--------------------------------------
+            if (DEBUG) console.log(matchesParsed)
             // Filter results and sort by date ascending
             let matches = matchesParsed.filter((match) =>
             {   
